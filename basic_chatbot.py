@@ -11,7 +11,7 @@ from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from IPython.display import Image, display
 import random
 import string
-
+from langchain_community.tools.tavily_search import TavilySearchResults
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -69,8 +69,6 @@ def run():
             print("User: " + user_input)
             stream_graph_updates(user_input)
             break
-
-  
 def save_graph(graph):
     try:
         # Generate a random filename
@@ -90,7 +88,6 @@ def save_graph(graph):
     except Exception:
         # This requires some extra dependencies and is optional
         pass
-
 
 if __name__ == "__main__":
     main()

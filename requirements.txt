@@ -16,3 +16,5 @@ faker
 langchain-openai
 langgraph 
 ipython
+tavily-python 
+langchain_community
