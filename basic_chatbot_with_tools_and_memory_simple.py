@@ -10,7 +10,7 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import ToolMessage
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
-
+from langchain_core.utils.function_calling import format_tool_to_openai_function
 
 from langchain_openai import AzureChatOpenAI
 from IPython.display import Image, display
@@ -18,6 +18,9 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 
 from helpers import save_graph
 from dotenv import load_dotenv
+
+from tools.math import AdditionTool
+
 load_dotenv(override=True)
 
 class GraphState(TypedDict):
@@ -30,52 +33,85 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv('OPENAI_API_BASE')
 os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 os.environ["TAVILY_API_KEY"]=os.getenv("TAVILY_API_KEY")
 
+
+system_message = """You are a helpful assistant. Your name is Bob. Be very silly and funny.
+When possible, use your tools to answer the user's questions.
+    """.strip()
+
+
+
 llm = AzureChatOpenAI(
     azure_deployment=os.getenv('OPENAI_API_MODEL_DEPLOYMENT_NAME'),
     api_version=os.getenv('OPENAI_API_VERSION')
 )
+
+tavily_tool = TavilySearchResults(max_results=2)
+calculator_tool = AdditionTool()
+tools = [tavily_tool, calculator_tool]
+
+llm_with_tools = llm.bind_tools(tools)
+
 # Define Nodes
 def chat_node(state: GraphState):
-    return {"messages": [llm.invoke(state["messages"])]}
+    return {"messages": [llm_with_tools.invoke(state["messages"])]}
 
 # Init Graph
 def build_graph():
+
     memory = MemorySaver()
     graph_builder = StateGraph(GraphState)
     graph_builder.add_node("chat_node", chat_node)
-    graph_builder.set_entry_point("chat_node")
+    graph_builder.add_edge(START, "chat_node")
+
+    tool_node = ToolNode(tools=tools)
+    graph_builder.add_node("tools", tool_node)
+    graph_builder.add_conditional_edges(
+    "chat_node",
+    tools_condition,
+    )
+    graph_builder.add_edge("tools", "chat_node")
+
     graph = graph_builder.compile(checkpointer=memory)
+    image_path = __file__.replace(".py", ".png")
+    save_graph(image_path,graph)
     return graph
+
 graph=build_graph()
 
-def main():
-    run()
 
-def stream_graph_updates(user_input: str):
+def stream_graph_updates(role: str, content: str):
     config = {"configurable": {"thread_id": "1"}}
     events = graph.stream(
-        {"messages": [{"role": "user", "content": user_input}]},
+        {"messages": [{"role": role, "content": content}]},
         config,
         stream_mode="values",
     )
     for event in events:
+        # print(event)
+        if "messages" in event:
+            event["messages"][-1].pretty_print()
+
         last_message=event["messages"][-1]
     return last_message
 
-def run():
+def main():
+
     for _ in range(0, 3):
         sleep(0.5)
         print(".")
     print("How can I help you? (type '/q' to exit)")
-
+    stream_graph_updates("system",system_message)
+    
     while True:
         try:
             user_input = input("> ")
             print("")
             if user_input.lower() in ["/q"]:
                 break
-            ai_message=stream_graph_updates(user_input)
-            print(ai_message.content)
+            ai_message=stream_graph_updates("user",user_input)
+            # print(ai_message.content)
+
+            
         except Exception as e:
             print("An error occurred:", e)
             break
