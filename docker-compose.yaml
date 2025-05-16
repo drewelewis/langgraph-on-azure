@@ -28,7 +28,7 @@ services:
     entrypoint: >
       sh -c "
         sleep 10 &&
-        curl -u elastic:changeme -X POST 'http://elasticsearch:9200/_security/api_key' -H 'Content-Type: application/json' -d '{\"name\": \"my-api-key\"}' > /output/api_key.json
+        curl -u elastic:changeme -X POST 'http://elasticsearch:9200/_security/api_key' -H 'Content-Type: application/json' -d '{\"name\": \"my-api-key\"}' > /config/elasticsearch-api-key.json
       "
     volumes:
       - ./output:/output
