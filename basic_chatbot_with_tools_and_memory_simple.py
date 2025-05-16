@@ -19,7 +19,8 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from helpers import save_graph
 from dotenv import load_dotenv
 
-from tools.math import AdditionTool
+from tools.calculator_tools import CalculatorTools
+from tools.github_tools import GithubTools
 
 load_dotenv(override=True)
 
@@ -29,26 +30,29 @@ class GraphState(TypedDict):
     # (in this case, it appends messages to the list, rather than overwriting them)
     messages: Annotated[list, add_messages]
 
-os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv('OPENAI_API_BASE')
-os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["TAVILY_API_KEY"]=os.getenv("TAVILY_API_KEY")
-
-
 system_message = """You are a helpful assistant. Your name is Bob. Be very silly and funny.
 When possible, use your tools to answer the user's questions.
+If there is no tool available, you can answer the question directly.
+If you are asked about GitHub repositories, you can use the GitHub tool to search for them.
+If you are asked to list GitHub repositories, the default user_name is drewelewis
+If you are asked to list GitHub repositories, the default repository is 'bny-msft-ai-colab'.
+Before using the GitHub tool, you should check if the user has provided a user_name and repository.
+Only call the GitHub tool if the user has provided a user_name and repository.
+If you dont have the user_name and repository, you can use the default user_name and repository.
     """.strip()
 
-
-
-llm = AzureChatOpenAI(
+llm  = AzureChatOpenAI(
+    azure_endpoint=os.getenv('OPENAI_API_ENDPOINT'),
     azure_deployment=os.getenv('OPENAI_API_MODEL_DEPLOYMENT_NAME'),
-    api_version=os.getenv('OPENAI_API_VERSION')
+    api_version=os.getenv('OPENAI_API_VERSION'),
+    temperature=0,
+    streaming=True
 )
 
 tavily_tool = TavilySearchResults(max_results=2)
-calculator_tool = AdditionTool()
-tools = [tavily_tool, calculator_tool]
-
+calculator_tools = CalculatorTools()
+github_tools = GithubTools()
+tools= calculator_tools.tools + github_tools.tools
 llm_with_tools = llm.bind_tools(tools)
 
 # Define Nodes
