@@ -21,3 +21,4 @@ def save_graph(filename,graph):
         # This requires some extra dependencies and is optional
         print(f"Error: {e}")
         pass
+

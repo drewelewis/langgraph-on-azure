@@ -39,7 +39,9 @@ If you are asked to list GitHub repositories, the default repository is 'bny-msf
 Before using the GitHub tool, you should check if the user has provided a user_name and repository.
 Only call the GitHub tool if the user has provided a user_name and repository.
 If you dont have the user_name and repository, you can use the default user_name and repository.
-    """.strip()
+
+
+   """.strip()
 
 llm  = AzureChatOpenAI(
     azure_endpoint=os.getenv('OPENAI_API_ENDPOINT'),

@@ -12,17 +12,18 @@ from IPython.display import Image, display
 import random
 import string
 from langchain_community.tools.tavily_search import TavilySearchResults
+from helpers import save_graph
+
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
-os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv('OPENAI_API_BASE')
-os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["TAVILY_API_KEY"]=os.getenv("TAVILY_API_KEY")
-
-llm = AzureChatOpenAI(
+llm  = AzureChatOpenAI(
+    azure_endpoint=os.getenv('OPENAI_API_ENDPOINT'),
     azure_deployment=os.getenv('OPENAI_API_MODEL_DEPLOYMENT_NAME'),
-    api_version=os.getenv('OPENAI_API_VERSION')
+    api_version=os.getenv('OPENAI_API_VERSION'),
+    temperature=0,
+    streaming=True
 )
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -40,6 +41,10 @@ graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 
 graph = graph_builder.compile()
+
+image_path = __file__.replace(".py", ".png")
+save_graph(image_path,graph)
+
 
 def main():
     run()
@@ -69,25 +74,7 @@ def run():
             print("User: " + user_input)
             stream_graph_updates(user_input)
             break
-def save_graph(graph):
-    try:
-        # Generate a random filename
-        import os
 
-        # Ensure the images directory exists
-        images_dir = "images"
-        os.makedirs(images_dir, exist_ok=True)
-        
-        # Generate a random filename
-        random_filename = os.path.join(images_dir, str(uuid.uuid4()) + ".png")
-        
-        # Save the image as a file
-        with open(random_filename, "wb") as f:
-            f.write(graph.get_graph().draw_mermaid_png())
-   
-    except Exception:
-        # This requires some extra dependencies and is optional
-        pass
 
 if __name__ == "__main__":
     main()

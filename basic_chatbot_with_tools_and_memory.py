@@ -16,19 +16,20 @@ from langchain_openai import AzureChatOpenAI
 from IPython.display import Image, display
 from langchain_community.tools.tavily_search import TavilySearchResults
 
+from helpers import save_graph
 
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
-os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv('OPENAI_API_BASE')
-os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["TAVILY_API_KEY"]=os.getenv("TAVILY_API_KEY")
-
-llm = AzureChatOpenAI(
+llm  = AzureChatOpenAI(
+    azure_endpoint=os.getenv('OPENAI_API_ENDPOINT'),
     azure_deployment=os.getenv('OPENAI_API_MODEL_DEPLOYMENT_NAME'),
-    api_version=os.getenv('OPENAI_API_VERSION')
+    api_version=os.getenv('OPENAI_API_VERSION'),
+    temperature=0,
+    streaming=True
 )
+
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -61,25 +62,7 @@ class BasicToolNode:
             )
         return {"messages": outputs}
 
-def save_graph(graph):
-    try:
-        # Generate a random filename
-        import os
 
-        # Ensure the images directory exists
-        images_dir = "images"
-        os.makedirs(images_dir, exist_ok=True)
-        
-        # Generate a random filename
-        random_filename = os.path.join(images_dir, str(uuid.uuid4()) + ".png")
-        
-        # Save the image as a file
-        with open(random_filename, "wb") as f:
-            f.write(graph.get_graph().draw_mermaid_png())
-   
-    except Exception:
-        # This requires some extra dependencies and is optional
-        pass
 
 def route_tools(state: State):
     """
@@ -122,7 +105,8 @@ graph_builder.add_edge("tools", "chatbot")
 graph_builder.set_entry_point("chatbot")
 graph = graph_builder.compile(checkpointer=memory)
 
-save_graph(graph)
+image_path = __file__.replace(".py", ".png")
+save_graph(image_path,graph)
 
 
 def main():
