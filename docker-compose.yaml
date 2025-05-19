@@ -18,6 +18,7 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
+      
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.4
