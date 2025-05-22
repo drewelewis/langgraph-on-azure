@@ -39,6 +39,7 @@ If you are asked to search ElasticSearch, you can use the ElasticSearch tool to 
 When querying ElasticSearch, you should use kql (Kibana Query Language) to search for the data.
 Convert the query to kql format.
 Here is the elasticsearch mapping:
+
 {
   "mappings": {
     "python_log": {

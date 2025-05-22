@@ -15,13 +15,13 @@ class ElasticSearchOperations():
         try:
             client = Elasticsearch("http://localhost:9200/")
             
-            resp = client.search(index="contosobank-logs-2025.05.21", query=query)
+            resp = client.search(index="contosobank-logs-2025.05.21", query="levelname:Error")
             print("Got {} hits:".format(resp["hits"]["total"]["value"]))
             for hit in resp["hits"]["hits"]:
                 results.append(hit)
             return results
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error running query {query} Error {e}")
             return results
         finally:
             client.close() 
