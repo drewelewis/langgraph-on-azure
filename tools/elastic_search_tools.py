@@ -1,43 +1,49 @@
-from typing import Optional
-
-from langchain_core.callbacks import (
-    AsyncCallbackManagerForToolRun,
-    CallbackManagerForToolRun,
-)
+import os
+from typing import List, Optional, Type
+from langchain_core.callbacks import  CallbackManagerForToolRun
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from github import Github
+from github import Auth
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
+from operations.elastic_search_operations import ElasticSearchOperations
+
+elasticsearch_Operations=ElasticSearchOperations()
+
+class ElasticsearchTools():
+    class ElasticsearchSearchTool(BaseTool):
+        name: str = "ElasticsearchSearchTool"
+        description: str = "useful for when you need get items from an elasticsearch index"
+        return_direct: bool = True
+        
+        class ElasticsearchSearchToolInputModel(BaseModel):
+            query: str = Field(description="query")
+
+             # Validation method to check parameter input from agent
+            @field_validator("query")
+            def validate_query_param(query):
+                if not query:
+                    raise ValueError("ElasticsearchSearchTool tool error: query parameter is empty")
+                else:
+                    return query
+            
+        args_schema: Optional[ArgsSchema] = ElasticsearchSearchToolInputModel
+
+        
+                
+        def _run(self,query) -> str:
+            logs=elasticsearch_Operations.search(query)
+            return str(logs)
 
 
-class AdditionModel(BaseModel):
-    a: int = Field(description="first number")
-    b: int = Field(description="second number")
+    # Init above tools and make available
+    def __init__(self) -> None:
+        self.tools = [self.ElasticsearchSearchTool()]
 
-
-# Note: It's important that every field has type hints. BaseTool is a
-# Pydantic class and not having type hints can lead to unexpected behavior.
-class AdditionTool(BaseTool):
-    name: str = "AdditionTool"
-    description: str = "useful for when you need to add 2 numbers"
-    args_schema: Optional[ArgsSchema] = AdditionModel
-    return_direct: bool = True
-
-    def _run(
-        self, a: int, b: int, run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> str:
-        """Use the tool"""
-        return str(a + b)
-
-    async def _arun(
-        self,
-        a: int,
-        b: int,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
-    ) -> str:
-        """Use the tool asynchronously."""
-        # If the calculation is cheap, you can just delegate to the sync implementation
-        # as shown below.
-        # If the sync calculation is expensive, you should delete the entire _arun method.
-        # LangChain will automatically provide a better implementation that will
-        # kick off the task in a thread to make sure it doesn't block other async code.
-        return self._run(a, b, run_manager=run_manager.get_sync())
+    # Method to get tools (for ease of use, made so class works similarly to LangChain toolkits)
+    def tools(self) -> List[BaseTool]:
+        return self.tools

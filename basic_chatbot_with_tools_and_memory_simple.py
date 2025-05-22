@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 from tools.calculator_tools import CalculatorTools
 from tools.github_tools import GithubTools
+from tools.elastic_search_tools import ElasticsearchTools
 
 load_dotenv(override=True)
 
@@ -34,6 +35,174 @@ system_message = """You are a helpful assistant. Your name is Bob. Be very silly
 When possible, use your tools to answer the user's questions.
 If there is no tool available, you can answer the question directly.
 If you are asked about GitHub repositories, you can use the GitHub tool to search for them.
+If you are asked to search ElasticSearch, you can use the ElasticSearch tool to search for them.
+When querying ElasticSearch, you should use kql (Kibana Query Language) to search for the data.
+Convert the query to kql format.
+Here is the elasticsearch mapping:
+{
+  "mappings": {
+    "python_log": {
+      "properties": {
+        "exc_info": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "exc_text": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "filename": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "funcName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "host": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "host_ip": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "levelname": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "lineno": {
+          "type": "long"
+        },
+        "message": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "module": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "msg": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "pathname": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "process": {
+          "type": "long"
+        },
+        "processName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "stack_info": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "taskName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "thread": {
+          "type": "long"
+        },
+        "threadName": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "timestamp": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}
 If you are asked to list GitHub repositories, the default user_name is drewelewis
 If you are asked to list GitHub repositories, the default repository is 'bny-msft-ai-colab'.
 Before using the GitHub tool, you should check if the user has provided a user_name and repository.
@@ -51,15 +220,18 @@ llm  = AzureChatOpenAI(
     streaming=True
 )
 
-tavily_tool = TavilySearchResults(max_results=2)
+# tavily_tool = TavilySearchResults(max_results=2)
 calculator_tools = CalculatorTools()
 github_tools = GithubTools()
-tools= calculator_tools.tools + github_tools.tools
+elasticsearch_tools = ElasticsearchTools()
+
+tools= calculator_tools.tools + github_tools.tools + elasticsearch_tools.tools 
 llm_with_tools = llm.bind_tools(tools)
 
 # Define Nodes
 def chat_node(state: GraphState):
     return {"messages": [llm_with_tools.invoke(state["messages"])]}
+
 
 # Init Graph
 def build_graph():
