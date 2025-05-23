@@ -2,7 +2,8 @@
 from elasticsearch import Elasticsearch
 
 doc_type = "python_log"
-index = "contosobank-logs-2025.05.21"
+# index = "contosobank-logs-2025.05.21"
+index = "_all"
 
 
 def main():
@@ -30,3 +31,5 @@ if __name__ == "__main__":
     results = main()
     for result in results:
         print(result)
+
+# https://stackoverflow.com/questions/65785913/how-to-automate-the-creation-of-elasticsearch-index-patterns-for-all-days

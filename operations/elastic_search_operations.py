@@ -1,6 +1,7 @@
 import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
+import json
 
 from elasticsearch import Elasticsearch
 from github import Auth
@@ -13,9 +14,10 @@ class ElasticSearchOperations():
     def search(self, query: str) -> list[any]| None:
         results = []
         try:
+            query = json.loads(query) #<--important
             client = Elasticsearch("http://localhost:9200/")
             
-            resp = client.search(index="contosobank-logs-2025.05.21", query="levelname:Error")
+            resp = client.search(index="contosobank-logs-2025.05.21", query=query)
             print("Got {} hits:".format(resp["hits"]["total"]["value"]))
             for hit in resp["hits"]["hits"]:
                 results.append(hit)

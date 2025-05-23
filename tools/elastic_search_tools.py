@@ -17,7 +17,14 @@ elasticsearch_Operations=ElasticSearchOperations()
 class ElasticsearchTools():
     class ElasticsearchSearchTool(BaseTool):
         name: str = "ElasticsearchSearchTool"
-        description: str = "useful for when you need get items from an elasticsearch index"
+        description: str = """useful for when you need get items from an elasticsearch index.
+        This tool can be used to search for logs in the elasticsearch index.
+        The input to this tool should be a query string that is used to search the index.
+        The query string should be in the format of a JSON object.
+        Here are some examples: 
+        # Example 1:  Get all log entries with levelname 'Error'
+        {'match': {'levelname': 'Error'}}
+        """
         return_direct: bool = True
         
         class ElasticsearchSearchToolInputModel(BaseModel):
