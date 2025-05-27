@@ -1,4 +1,5 @@
 import os
+import datetime
 from typing import List, Optional, Type
 from langchain_core.callbacks import  CallbackManagerForToolRun
 from langchain_core.tools import BaseTool
@@ -11,6 +12,9 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from operations.github_operations import GitHubOperations
+current_datetime = datetime.now()
+
+print("Today's date and time:", current_datetime)
 
 github_Operations=GitHubOperations()
 
