@@ -107,7 +107,8 @@ class GithubTools():
         name: str = "GithubCreateIssueTool"
         description: str = """
             A tool to create an issue in a Github repository.
-            This tool is useful for when you need to get the content of a file in a repository at a specific path.
+            The repository should be in the format 'username/repo_name'.
+
         """.strip()
         return_direct: bool = False
     
