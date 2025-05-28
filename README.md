@@ -12,3 +12,8 @@ TAVILY_API_KEY
 Github_PAT
 ELASTICSEARCH_URL
 ELASTICSEARCH_INDEX
+
+
+There are bat files at root for easy python environment management.
+
+Use the _install.bat to install requirements before running.
