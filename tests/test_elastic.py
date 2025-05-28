@@ -1,9 +1,10 @@
-
+import os
 from elasticsearch import Elasticsearch
 
 doc_type = "python_log"
 # index = "contosobank-logs-2025.05.21"
-index = "_all"
+elasticsearch_url=os.getenv('ELASTICSEARCH_URL')
+elasticsearch_index=os.getenv('ELASTICSEARCH_INDEX')
 
 
 def main():
@@ -15,9 +16,9 @@ def main():
         }
         
     try:
-        client = Elasticsearch("http://localhost:9200/")
+        client = Elasticsearch(elasticsearch_url)
         
-        resp=client.search(index=index, query=query)
+        resp=client.search(index=elasticsearch_index, query=query)
         for hit in resp["hits"]["hits"]:
             results.append(hit)
         return results

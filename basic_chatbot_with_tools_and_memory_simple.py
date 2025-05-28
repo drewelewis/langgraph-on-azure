@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 from time import sleep
 from typing import Annotated
 
@@ -24,194 +25,33 @@ from tools.github_tools import GithubTools
 from tools.elastic_search_tools import ElasticsearchTools
 
 load_dotenv(override=True)
+current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+print("Today's date and time:", current_datetime)
 
 class GraphState(TypedDict):
     # Messages have the type "list". The `add_messages` function
     # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwriting them)
     messages: Annotated[list, add_messages]
-
-system_message = """You are a helpful assistant. Your name is Bob. Be very silly and funny.
+system_message="Today's date and time: " + current_datetime + "\n\n"
+system_message= system_message + """You are an application support agent.  
+You will help developers with their questions about the application.
+You will use the tools available to you to answer the user's questions.
+Application logs are stored in an ElasticSearch index.
+You can search for code in a GitHub repository.
+You can use the calculator to perform calculations.
 When possible, use your tools to answer the user's questions.
-If there is no tool available, you can answer the question directly.
-If you are asked about GitHub repositories, you can use the GitHub tool to search for them.
-If you are asked to search ElasticSearch, you can use the ElasticSearch tool to search for them.
-When querying ElasticSearch, you should use kql (Kibana Query Language) to search for the data.
-Convert the query to kql format.
-Here is the elasticsearch mapping:
+If there is no tool available or you are unsure of which tool to use, ask for clarifying questions.
+Here are some default values for the tools you can use:
 
-{
-  "mappings": {
-    "python_log": {
-      "properties": {
-        "exc_info": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "exc_text": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "filename": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "funcName": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "host": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "host_ip": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "levelname": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "lineno": {
-          "type": "long"
-        },
-        "message": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "module": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "msg": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "name": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "pathname": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "process": {
-          "type": "long"
-        },
-        "processName": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "stack_info": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "taskName": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "thread": {
-          "type": "long"
-        },
-        "threadName": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "timestamp": {
-          "type": "date"
-        }
-      }
-    }
-  }
-}
-If you are asked to list GitHub repositories, the default user_name is drewelewis
-If you are asked to list GitHub repositories, the default repository is 'bny-msft-ai-colab'.
-Before using the GitHub tool, you should check if the user has provided a user_name and repository.
-Only call the GitHub tool if the user has provided a user_name and repository.
-If you dont have the user_name and repository, you can use the default user_name and repository.
+If you are not given a GitHub user, you can use the default user name drewelewis
+You can verify with the user if they want to use a different user name.
+The default repo is drewelewis/ContosoBankAPI
+If you are asked to search for code in a GitHub repository, the default query is def main
+If you dont have the user_name and repository, you can ask the user for it.
 
-
-   """.strip()
+""".strip()
 
 llm  = AzureChatOpenAI(
     azure_endpoint=os.getenv('OPENAI_API_ENDPOINT'),

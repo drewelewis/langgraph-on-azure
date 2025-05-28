@@ -18,13 +18,181 @@ class ElasticsearchTools():
     class ElasticsearchSearchTool(BaseTool):
         name: str = "ElasticsearchSearchTool"
         description: str = """useful for when you need get items from an elasticsearch index.
-        This tool can be used to search for logs in the elasticsearch index.
-        The input to this tool should be a query string that is used to search the index.
-        The query string should be in the format of a JSON object.
-        Here are some examples: 
-        # Example 1:  Get all log entries with levelname 'Error'
-        {'match': {'levelname': 'Error'}}
-        """
+        When querying ElasticSearch, you should use KQL (Kibana Query Language) to search for the data.
+        Convert the input query to KQL format.
+        The KQL query should be a JSON object that matches the Elasticsearch mapping.
+        If you are not sure about the query, you can return an empty list
+        Here is the elasticsearch mapping:
+        {
+        "mappings": {
+            "python_log": {
+            "properties": {
+                "exc_info": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "exc_text": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "filename": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "funcName": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "host": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "host_ip": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "levelname": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "lineno": {
+                "type": "long"
+                },
+                "message": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "module": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "msg": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "pathname": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "process": {
+                "type": "long"
+                },
+                "processName": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "stack_info": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "taskName": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "thread": {
+                "type": "long"
+                },
+                "threadName": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                    }
+                }
+                },
+                "timestamp": {
+                "type": "date"
+                }
+            }
+            }
+        }
+        }
+        
+    The query string should be in the format of a JSON object.
+    Here are some examples: 
+    # Example 1:  Get all log entries with levelname 'Error'
+    {'match': {'levelname': 'Error'}}
+    """
         return_direct: bool = True
         
         class ElasticsearchSearchToolInputModel(BaseModel):
