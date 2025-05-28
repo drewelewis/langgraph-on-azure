@@ -39,9 +39,7 @@ class GithubTools():
                     return user
             
         args_schema: Optional[ArgsSchema] = GithubGetReposByUserToolInputModel
-
-        
-                
+     
         def _run(self, user: str) -> str:
             repos=github_Operations.get_repo_list_by_username(user)
             return str(repos)
@@ -54,7 +52,7 @@ class GithubTools():
             This tool is useful for when you need to get a list of files in a repository.
             Before opening file content, you should get the list of files using this tool.
         """.strip()
-        return_direct: bool = True
+        return_direct: bool = False
         
         class GithubGetFilesByRepoToolInputModel(BaseModel):
             repo: str = Field(description="repo")
@@ -79,7 +77,7 @@ class GithubTools():
             A tool to get contents of files in a Github repository.
             This tool is useful for when you need to get the content of a file in a repository at a specific path.
         """.strip()
-        return_direct: bool = True
+        return_direct: bool = False
         
         class GithubGetFileContentByRepoandPathToolInputModel(BaseModel):
             repo: str = Field(description="repo"),
@@ -104,7 +102,49 @@ class GithubTools():
         def _run(self, repo: str, path: str) -> str:
             content=github_Operations.get_file_content_by_repo_and_path(repo,path)
             return str(content)
-               
+            
+    class GithubCreateIssueTool(BaseTool):
+        name: str = "GithubCreateIssueTool"
+        description: str = """
+            A tool to create an issue in a Github repository.
+            This tool is useful for when you need to get the content of a file in a repository at a specific path.
+        """.strip()
+        return_direct: bool = False
+    
+        class GithubCreateIssueToolInputModel(BaseModel):
+            repo: str = Field(description="repo"),
+            title: str = Field(description="title"),
+            body: str = Field(description="path")
+
+            # Validation method to check parameter input from agent
+            @field_validator("repo")
+            def validate_query_param(repo):
+                if not repo:
+                    raise ValueError("GithubCreateIssueTool error: repo parameter is empty")
+                else:
+                    return repo
+            
+            @field_validator("title")
+            def validate_query_param(title):
+                if not title:
+                    raise ValueError("GithubCreateIssueTool error: title parameter is empty")
+                else:
+                    return title
+                
+            @field_validator("body")
+            def validate_query_param(body):
+                if not body:
+                    raise ValueError("GithubCreateIssueTool error: body parameter is empty")
+                else:
+                    return body
+                
+        args_schema: Optional[ArgsSchema] = GithubCreateIssueToolInputModel
+
+        def _run(self, repo: str, title: str, body: str) -> str:
+            issue=github_Operations.create_issue(repo,title,body)
+            return str(issue)
+            
+    
     # class GithubCodeSearchTool(BaseTool):
     #     name: str = "GithubCodeSearchTool"
     #     description: str = """useful for when you need search for items from github.
@@ -155,7 +195,7 @@ class GithubTools():
 
     # Init above tools and make available
     def __init__(self) -> None:
-        self.tools = [self.GithubGetReposByUserTool(), self.GithubGetFilesByRepoTool(), self.GithubGetFileContentByRepoandPathTool()]
+        self.tools = [self.GithubGetReposByUserTool(), self.GithubGetFilesByRepoTool(), self.GithubGetFileContentByRepoandPathTool(), self.GithubCreateIssueTool()]
 
     # Method to get tools (for ease of use, made so class works similarly to LangChain toolkits)
     def tools(self) -> List[BaseTool]:

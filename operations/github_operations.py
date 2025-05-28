@@ -111,4 +111,19 @@ class GitHubOperations():
             return []
         finally:
             g.close()
+
+    def create_issue(self, repo: str, title: str, body: str) -> str:
+        try:
+            g = Github(pat, per_page=100)
+            repository = g.get_repo(repo)
+            if not repository:
+                raise ValueError(f"Repository '{repo}' not found.")
+            
+            issue = repository.create_issue(title=title, body=body)
+            return f"Issue created successfully: {issue.html_url}"
+        except Exception as e:
+            print(f"An error occurred with GitHubOperations.create_issue: {e}")
+            return ""
+        finally:
+            g.close()
     
