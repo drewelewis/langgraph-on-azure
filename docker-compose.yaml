@@ -2,7 +2,7 @@ services:
 
   postgres:
     image: postgres:17.5
-    container_name: postgres
+    container_name: langgraph_postgres
     ports:
       - "5432:5432"
     environment:
@@ -15,14 +15,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
   adminer:
     image: adminer
-    container_name: adminer
+    container_name: langgraph_adminer
     restart: always
     ports:
       - 8080:8080
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
-    container_name: elasticsearch
+    container_name: langgraph_elasticsearch
     ports:
       - "9200:9200"
     environment:
@@ -37,14 +37,14 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
   kibana:
     image: docker.elastic.co/kibana/kibana:7.15.0
-    container_name: kibana
+    container_name: langgraph_kibana
     ports:
       - "5601:5601"
     depends_on:
       - elasticsearch
   teamcity:
     image: jetbrains/teamcity-server:latest
-    container_name: teamcity
+    container_name: langgraph_teamcity
     ports:
       - "8111:8111"
     environment:
@@ -52,8 +52,28 @@ services:
     volumes:
       - teamcity_data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
+  tekton:
+  # You need to have Openshift local installed to run this service successfully.
+  # https://zxtech.wordpress.com/2024/05/12/configuring-openshift-local/
+    image: registry.redhat.io/openshift-pipelines/pipelines-controller-rhel8:v1.7.2
+    container_name: langgraph_tekton
+    command:
+    - /bin/bash
+    - -c
+    - yum install -y git && curl -LO https://github.com/tektoncd/cli/releases/download/v0.20.0/tkn_0.20.0_Linux_x86_64.tar.gz
+      && tar xvzf tkn_0.20.0_Linux_x86_64.tar.gz -C /usr/local/bin && /usr/local/bin/tkn
+      version
+    ports:
+    - 9097:9097
+    environment:
+      # running openshift local
+      - KUBECONFIG=/tekton-data/kubeconfig
+    volumes:
+    - ./tekton-data:/tekton-data
+
 volumes:
   postgres_data:
   elasticsearch_data:
   teamcity_data:
   teamcity_logs:
+  tekton_data:
