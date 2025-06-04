@@ -257,6 +257,7 @@ def get_resource_quota(namespace: str = None) -> list[ResourceInstance]:
     except client.exceptions.ApiException as e:
         print(f"An error occurred: {e}")
         return []
+    
 def get_limit_ranges(namespace: str = None) -> list[ResourceInstance]:
     try:
         limit_ranges = dyn_client.resources.get(api_version='v1', kind='LimitRange')
@@ -267,6 +268,7 @@ def get_limit_ranges(namespace: str = None) -> list[ResourceInstance]:
     except client.exceptions.ApiException as e:
         print(f"An error occurred: {e}")
         return []
+    
 def get_serviceaccounts(namespace: str = None) -> list[ResourceInstance]:
     try:
         serviceaccounts = dyn_client.resources.get(api_version='v1', kind='ServiceAccount')
