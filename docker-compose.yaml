@@ -52,24 +52,34 @@ services:
     volumes:
       - teamcity_data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
-  tekton:
+  # tekton:
   # You need to have Openshift local installed to run this service successfully.
   # https://zxtech.wordpress.com/2024/05/12/configuring-openshift-local/
-    image: registry.redhat.io/openshift-pipelines/pipelines-controller-rhel8:v1.7.2
-    container_name: langgraph_tekton
-    command:
-    - /bin/bash
-    - -c
-    - yum install -y git && curl -LO https://github.com/tektoncd/cli/releases/download/v0.20.0/tkn_0.20.0_Linux_x86_64.tar.gz
-      && tar xvzf tkn_0.20.0_Linux_x86_64.tar.gz -C /usr/local/bin && /usr/local/bin/tkn
-      version
+  # KUBERNETES_MASTER=https://api.crc.testing:6443
+    
+  ucd-server:
+    image: mkorejo/ucd-server
     ports:
-    - 9097:9097
+      - "8443:8443"
+      - "7919:7919"
     environment:
-      # running openshift local
-      - KUBECONFIG=/tekton-data/kubeconfig
-    volumes:
-    - ./tekton-data:/tekton-data
+      - DEPLOY_SERVER_HOSTNAME=your-ucd-hostname-or-ip
+      - DB_HOST=mysql
+      - DB_NAME=ibm_ucd
+      - DB_USER=ibm_ucd
+      - DB_PASSWORD=your-mysql-password
+      - ADMIN_PASSWORD=your-ucd-admin-password  # Optional
+    depends_on:
+      - mysql
+  mysql:
+    image: mysql:5.6
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=your-mysql-root-password
+      - MYSQL_DATABASE=ibm_ucd
+      - MYSQL_USER=ibm_ucd
+      - MYSQL_PASSWORD=your-mysql-password
 
 volumes:
   postgres_data:

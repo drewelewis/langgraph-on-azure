@@ -1,54 +1,51 @@
 from kubernetes import client, config
+from openshift.dynamic import DynamicClient
+ 
+from openshift.dynamic.resource import ResourceInstance
 
 config.load_kube_config()
 
-kubeclient= client.CoreV1Api()
-CustomObjectClient=client.CustomObjectsApi()
+k8s_client = config.new_client_from_config()
+dyn_client = DynamicClient(k8s_client)
+# https://github.com/openshift/openshift-restclient-python
 
 # get all custom resource definitions
-def get_all_crds():
+def get_custom_resources() -> list[ResourceInstance]:
     try:
-        crds = CustomObjectClient.get_cluster_custom_object(
-            name="customresourcedefinitions",
-            group="apiextensions.k8s.io",
-            version="v1",
-            plural="customresourcedefinitions"
+        custom_resources = dyn_client.resources.get(
+        api_version='apiextensions.k8s.io/v1beta1',
+        kind='CustomResourceDefinition'
         )
-         # Extracting the names of the CRDs
-         # Assuming crds.items is a list of CRD objects
-         # and each object has a metadata field with a name attribute
-         # Adjust according to your actual CRD structure
-        return [crd.metadata.name for crd in crds.items]
+        return custom_resources.get().items
     except client.exceptions.ApiException as e:
         print(f"An error occurred: {e}")
         return []
     
-def get_all_namespaces():
+# get namespaces    
+def get_namespaces() -> list[ResourceInstance]:
     try:
-        namespaces = kubeclient.list_namespace()
-        return [ns.metadata.name for ns in namespaces.items]
+        namespaces = dyn_client.resources.get(api_version='v1', kind='Namespace')
+        return namespaces.get().items
     except client.exceptions.ApiException as e:
         print(f"An error occurred: {e}")
         return []
     
 
-# get all pods in a specific namespace
-def get_pods_in_namespace(namespace):
+# get projects
+def get_projects() -> list[ResourceInstance]:
     try:
-        pods = kubeclient.list_namespaced_pod(namespace)
-        return pods.items
+        projects = dyn_client.resources.get(api_version='project.openshift.io/v1', kind='Project')
+        return projects.get().items
     except client.exceptions.ApiException as e:
         print(f"An error occurred: {e}")
         return []
     
-namespaces = get_all_namespaces()
-for ns in namespaces:
-    print(f"Namespace: {ns}")
+namespaces = get_namespaces()
+print("Namespaces:")
+for namespace in namespaces:
+    print(f"Namespace Name: {namespace.metadata.name}")
 
-# pods=get_pods_in_namespace("tekton-pipelines")
-# for pod in pods:
-    # print(f"Pod Name: {pod.metadata.name}, Status: {pod.status.phase}")
-
-crds= get_all_crds()
-for crd in crds:
-    print(f"CRD Name: {crd}")
+projects= get_projects()
+print("Projects:")
+for project in projects:
+    print(f"Project Name: {project.metadata.name}, Status: {project.status.phase if hasattr(project.status, 'phase') else 'N/A'}")

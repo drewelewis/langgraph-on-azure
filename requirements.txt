@@ -26,4 +26,4 @@ langchain-mcp-adapters
 asyncio
 PyGithub
 elasticsearch
-kubernetes
+openshift

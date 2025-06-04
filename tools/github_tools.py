@@ -154,7 +154,7 @@ class GithubTools():
         
     #     Here are some example of queries:
 
-    #     install repo:charles/privaterepo	Find all instances of install in code from the repository charles/privaterepo.
+    #     Find all instancesinstall repo:charles/privaterepo	 of install in code from the repository charles/privaterepo.
 
     #     shogun user:heroku	Find references to shogun from all public heroku repositories.
 
