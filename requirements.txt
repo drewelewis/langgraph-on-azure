@@ -27,3 +27,4 @@ asyncio
 PyGithub
 elasticsearch
 openshift
+dohq-teamcity

@@ -52,13 +52,40 @@ services:
     volumes:
       - teamcity_data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
+    networks:
+      - teamcity_network
+  teamcity-agent1:
+    image: jetbrains/teamcity-agent:latest
+    container_name: langgraph_teamcity_agent_1
+    environment:
+      - SERVER_URL=http://teamcity:8111
+      - AGENT_NAME=langgraph_agent
+    depends_on:
+      - teamcity
+    networks:
+      - teamcity_network
+
+  teamcity-agent2:
+    image: jetbrains/teamcity-agent:latest
+    container_name: langgraph_teamcity_agent_2
+    environment:
+      - SERVER_URL=http://teamcity:8111
+      - AGENT_NAME=langgraph_agent
+    depends_on:
+      - teamcity
+    networks:
+      - teamcity_network
+
+
+
   # tekton:
   # You need to have Openshift local installed to run this service successfully.
   # https://zxtech.wordpress.com/2024/05/12/configuring-openshift-local/
   # KUBERNETES_MASTER=https://api.crc.testing:6443
     
-  ucd-server:
+  udeploy-server:
     image: mkorejo/ucd-server
+    container_name: langgraph_udeploy
     ports:
       - "8443:8443"
       - "7919:7919"
@@ -87,3 +114,6 @@ volumes:
   teamcity_data:
   teamcity_logs:
   tekton_data:
+
+networks:
+  teamcity_network:

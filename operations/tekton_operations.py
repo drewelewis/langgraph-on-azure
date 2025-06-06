@@ -8,6 +8,7 @@ config.load_kube_config()
 k8s_client = config.new_client_from_config()
 dyn_client = DynamicClient(k8s_client)
 # https://github.com/openshift/openshift-restclient-python
+# install teckton tasks https://hub.tekton.dev/tekton/task/git-clone
 
 # get all custom resource definitions
 def get_custom_resources() -> list[ResourceInstance]:
