@@ -15,8 +15,8 @@ class TeamcityOperations():
     def get_projects(self) -> str:
         try:
             tc = TeamCity(TEAMCITY_URL, auth=(TEAMCITY_ADMIN, TEAMCITY_ADMIN_PASSWORD))
-            tc.connect()
-            projects= tc.get_projects() 
+            # connect to TeamCity server
+            projects = tc.projects.get_projects()
             return projects
         except Exception as e:
             print(f"An error occurred with TeamcityOperations.get_projects: {e}")

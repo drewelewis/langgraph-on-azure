@@ -20,7 +20,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from helpers import save_graph
 from dotenv import load_dotenv
 
-from tools.calculator_tools import CalculatorTools
+
 from tools.github_tools import GithubTools
 from tools.elastic_search_tools import ElasticsearchTools
 
@@ -64,12 +64,11 @@ llm  = AzureChatOpenAI(
     streaming=True
 )
 
-# tavily_tool = TavilySearchResults(max_results=2)
-calculator_tools = CalculatorTools()
+
 github_tools = GithubTools()
 elasticsearch_tools = ElasticsearchTools()
 
-tools= calculator_tools.tools + github_tools.tools + elasticsearch_tools.tools 
+tools= github_tools.tools + elasticsearch_tools.tools 
 llm_with_tools = llm.bind_tools(tools)
 
 # Define Nodes
